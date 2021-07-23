@@ -1,1 +1,4 @@
 .vscode/
+build/
+*.so
+torch2trt.egg-info/
