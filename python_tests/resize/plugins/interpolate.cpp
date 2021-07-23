@@ -39,9 +39,7 @@ public:
   // initial
   InterpolatePlugin(std::vector<int64_t> size, std::string mode, bool align_corners) :
     size(size), mode(mode), align_corners(align_corners)
-  {
-    cout << "print test....................." << endl;
-  }
+  {  }
     
   InterpolatePlugin(const char *data, size_t length) : InterpolatePlugin(std::string(data, length)) {}
     
@@ -53,22 +51,18 @@ public:
 
   ////////////////////////////////// IPluginv2 methods ///////////////////////////
   const char* getPluginType() const override {
-    cout << "in getplugintype......." << endl;
     return "interpolate";
   };
 
   const char* getPluginVersion() const override {
-    cout << "in getpluginversion......." << endl;
     return "1";
   }
 
   int getNbOutputs() const override {
-    cout << "in getnboutputs......." << endl;
     return 1;
   } 
 
   int initialize() override {
-    cout << "in initialize......." << endl;
     // set device
     tensor_options = tensor_options.device(c10::kCUDA);
       
@@ -82,9 +76,7 @@ public:
     return 0;
   }
 
-  void terminate() override { 
-    cout << "in terminate......." << endl;    
-  }
+  void terminate() override {   }
 
     // 返回序列化时需要的字节数
   size_t getSerializationSize() const override {
@@ -93,15 +85,12 @@ public:
   
   // 把参数和权重按照顺序序列化到 buffer 
   void serialize(void* buffer) const override {
-      cout << "in serialize......." << endl;
       std::string data = serializeToString();
       size_t size = getSerializationSize();
       data.copy((char *) buffer, size);
   }
 
-  void destroy() override {
-    cout << "in destroy......." << endl;
-  }
+  void destroy() override {  }
 
     // 为插件设置namespace名字
   void setPluginNamespace(const char* pluginNamespace) override {}
@@ -115,14 +104,11 @@ public:
   nvinfer1::DataType getOutputDataType(int index,
                                       const nvinfer1::DataType *inputTypes,
                                       int nbInputs) const override {
-    cout << "in getoutput datatype......." << endl;
     return inputTypes[0];
   }
 
   // 主要用于传递不变的权重和参数，复制多份
-  IPluginV2DynamicExt *clone() const  {
-    cout << "in clone......." << endl;
-    
+  IPluginV2DynamicExt *clone() const  {    
     return new InterpolatePlugin(size, mode, align_corners);
   }
 
@@ -131,7 +117,6 @@ public:
                               const DimsExprs* inputs, 
                               int nbInputs, 
                               IExprBuilder& exprBuilder) override{
-    cout << "in get output dimensions......." << endl;
     DimsExprs out_dims;
     out_dims.nbDims = inputs->nbDims;
 
@@ -148,7 +133,6 @@ public:
   bool supportsFormatCombination(int pos,
                                 const nvinfer1::PluginTensorDesc *inOut,
                                 int nbInputs, int nbOutputs) override{
-    cout << "in support format combination......." << endl;
     return true;
   }
 
@@ -157,7 +141,6 @@ public:
                       int nbInputs,
                       const nvinfer1::DynamicPluginTensorDesc *out,
                       int nbOutputs) override {
-    cout << "in configurePlugin......." << endl;
     // set input size
     input_sizes.resize(in->desc.dims.nbDims);
     for (size_t i = 0; i < in->desc.dims.nbDims; i++) {
@@ -181,7 +164,6 @@ public:
                           int nbInputs,
                           const nvinfer1::PluginTensorDesc *outputs,
                           int nbOutputs) const override {
-    cout << "in get workspace size......." << endl;
     return 0;
   }
 
@@ -190,7 +172,6 @@ public:
               const nvinfer1::PluginTensorDesc *outputDesc,
               const void *const *inputs, void *const *outputs, void *workspace,
               cudaStream_t stream) override {
-    cout << "in enqueue......." << endl;
 
     std::vector<long> batch_input_sizes = input_sizes;
     std::vector<long> batch_output_sizes = output_sizes;
@@ -199,8 +180,8 @@ public:
     tensor_options = tensor_options.dtype(c10::kFloat);
 
     // debug show
-    cout << "input address:" << inputs[0] << endl;
-    cout << "out   address:" << outputs[0] << endl;
+    // cout << "input address:" << inputs[0] << endl;
+    // cout << "out   address:" << outputs[0] << endl;
     
     // create tensor wrappers
     at::Tensor input = at::from_blob((void*) inputs[0], batch_input_sizes, [](void*){}, tensor_options);
@@ -216,15 +197,12 @@ public:
     } else if (mode == "bicubic") {
       at::upsample_bicubic2d_out(output, input, {size[0], size[1]}, align_corners);
     }
-
-    cout << "part 5......." << endl;
     return 0;
   }
 
 
 ////////////////////////////////// OWN methods ///////////////////////////
   void deserializeFromString(const std::string &data) {
-      cout << "in deserialize from string......." << endl;
       std::istringstream data_stream(data);
       torch::serialize::InputArchive input_archive;
       input_archive.load_from(data_stream);
@@ -273,7 +251,6 @@ public:
   }
     
   std::string serializeToString() const {
-      cout << "in serialize to string......." << endl;
       torch::serialize::OutputArchive output_archive;
       output_archive.write("size", torch::IValue(size));
       output_archive.write("mode", torch::IValue(mode));

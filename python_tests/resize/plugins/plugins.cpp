@@ -1,6 +1,6 @@
 #include <torch/extension.h>
 #include "interpolate.cpp"
-#include "group_norm.cpp"
+// #include "group_norm.cpp"
 
 
 using namespace nvinfer1;
